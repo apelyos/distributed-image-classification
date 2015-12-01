@@ -1,14 +1,18 @@
 package common;
 import javax.xml.bind.annotation.*;
 
+// sent by the localApp for manager 
+
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Command {
 	
 	@XmlEnum
 	public enum CommandTypes {
-		SHUTDOWN, STARTUP, STATUS
+		INITIATE, TERMINATE
 	}
 	
 	public CommandTypes commandType;
+	
+	public String payload;
 }

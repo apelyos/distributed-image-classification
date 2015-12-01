@@ -1,12 +1,10 @@
 package common;
 import javax.xml.bind.annotation.*;
 
-// sent by the manager for workers
+// sent by the workers for manager
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Job {
-    public String name;
-    
-    public String content;
+public class JobResult {
+
 }
