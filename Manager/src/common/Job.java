@@ -6,7 +6,16 @@ import javax.xml.bind.annotation.*;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Job {
-    public String name;
+	private Job () {
+		// for jaxb
+	}
+	
+	public Job (String imgURL, int serial) {
+		imageUrl = imgURL;
+		serialNumber = serial; 
+	}
+	
+    public int serialNumber;
     
-    public String content;
+    public String imageUrl;
 }

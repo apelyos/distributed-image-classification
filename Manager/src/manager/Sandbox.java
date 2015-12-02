@@ -16,19 +16,17 @@ import common.Job;
 import common.JobResult;
 import common.GenericMessage;
 import common.Command;
+import common.Command.CommandTypes;
 import common.Conclusion;
 
-public class DistManager {
+public class Sandbox {
 
 	public static void main(String[] args) throws JAXBException, IOException {
 		// create test object
-		GenericMessage message1 = new GenericMessage();
-		message1.from = InetAddress.getLocalHost().getHostName();
-		message1.type = "job";
-		Job job = new Job();
-		job.content = "job content";
-		job.name = "job name";
-		message1.body = job; // object as body of msg
+		Command cmd = new Command();
+		cmd.type = CommandTypes.INITIATE;
+		cmd.payload = "image-urls.txt";
+		GenericMessage message1 = new GenericMessage(cmd);
 		
 		// format outgoing message
 		String xml = message1.toXML();
@@ -63,11 +61,7 @@ public class DistManager {
             // process incoming message
             GenericMessage incoming = GenericMessage.fromXML(message.getBody());
             System.out.println(incoming.from);
-            System.out.println(incoming.type);
-            Job j = (Job) incoming.body;
-            System.out.println(j.name);
-            System.out.println(j.content);
-            
+            System.out.println(incoming.type);           
             
             // Deletes a message
             System.out.println("Deleting the message.\n");

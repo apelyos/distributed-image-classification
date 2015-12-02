@@ -1,6 +1,8 @@
 package common;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -11,6 +13,21 @@ import javax.xml.bind.annotation.*;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class GenericMessage {
+	private GenericMessage() {
+		//for jaxb
+	}
+	
+	public GenericMessage(Object obj)  {
+		try {
+			from = InetAddress.getLocalHost().getHostName();
+		} catch (UnknownHostException e) {
+			from = "Unknown";
+		}
+		
+		type = obj.getClass().getName();
+		body = obj;
+	}
+	
     @XmlAttribute
     public String type;
  

@@ -12,7 +12,7 @@ public class Command {
 		INITIATE, TERMINATE
 	}
 	
-	public CommandTypes commandType;
+	public CommandTypes type;
 	
 	public String payload;
 }
