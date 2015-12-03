@@ -13,6 +13,7 @@ import javax.xml.bind.annotation.*;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class GenericMessage {
+	@SuppressWarnings("unused")
 	private GenericMessage() {
 		//for jaxb
 	}

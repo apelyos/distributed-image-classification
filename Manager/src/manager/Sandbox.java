@@ -1,7 +1,6 @@
 package manager;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.util.List;
 import javax.xml.bind.*;
 import com.amazonaws.auth.PropertiesCredentials;
@@ -12,16 +11,26 @@ import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
-import common.Job;
-import common.JobResult;
+import dal.NodesMgmt;
+import dal.NodesMgmt.NodeType;
 import common.GenericMessage;
 import common.Command;
 import common.Command.CommandTypes;
-import common.Conclusion;
 
 public class Sandbox {
 
 	public static void main(String[] args) throws JAXBException, IOException {
+		
+		
+		NodesMgmt mgmt = new NodesMgmt(NodeType.WORKER);
+		// run an instance:
+		//List<String> res1 = mgmt.runInstances(1);
+		//System.out.println("IDs of the started instance: " + res1);
+		
+		// get running instances (IDs)
+		//mgmt.terminateAllRunningInstances();
+		System.out.println(mgmt.getAllRunningInstances());
+		
 		// create test object
 		Command cmd = new Command();
 		cmd.type = CommandTypes.INITIATE;

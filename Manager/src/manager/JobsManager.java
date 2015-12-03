@@ -2,14 +2,21 @@ package manager;
 
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.logging.Logger;
+
+import javax.xml.bind.JAXBException;
+
 import common.Command;
 import common.GenericMessage;
 import common.Job;
 import common.Command.CommandTypes;
 import common.Configuration;
+import dal.NodesMgmt;
 import dal.Queue;
 import dal.Storage;
+import dal.NodesMgmt.NodeType;
 
 public class JobsManager implements Runnable {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -29,7 +36,6 @@ public class JobsManager implements Runnable {
 //		Checks the SQS message count and starts Worker processes (nodes) accordingly.
 //		The manager should create a worker for every n messages, if there are no running workers.
 //		If there are k active workers, and the new job requires m workers, then the manager should create m-k new workers, if possible.
-//		Note that while the manager creates a node for every n messages, it does not delegate messages to specific nodes. All of the worker nodes take their messages from the same SQS queue; so it might be the case that with 2n messages, hence two worker nodes, one node processed n+(n/2) messages, while the other processed only n/2.
 //		After the manger receives response messages from the workers on all the files on an input file, then it:
 //		Creates a summary output file accordingly,
 //		Uploads the output file to S3,
@@ -42,55 +48,46 @@ public class JobsManager implements Runnable {
 //		Terminates.
 		
 		try {
-			Queue manageQueue = new Queue(Configuration.QUEUE_MANAGE);
-			String rawMsg = manageQueue.waitForMessage();
-			logger.info ("Got msg: " + rawMsg);
-			GenericMessage msg =  GenericMessage.fromXML(rawMsg);
-			if (!msg.type.equals("common.Command"))
-				throw new Exception("Invalid message type recieved.");
-			
-			Command cmd = (Command) msg.body;
-			
-			manageQueue.deleteLastMessage();
+			// wait for initiate command
+			Command cmd = waitForCommand();
 			
 			if (cmd.type == CommandTypes.INITIATE) {
 				logger.info("Got initiate command");
 				String fileKey = cmd.payload;
 				logger.info("Got file Key: " + fileKey);
 				
+				// get file from storage
 				Storage storage = new Storage(Configuration.FILES_BUCKET_NAME);
-				
 				BufferedReader reader = storage.get(fileKey);
 				
+				// read file by line, create jobs & send to queue
 				Queue jobsQueue = new Queue(Configuration.QUEUE_JOBS);
-				
-				// create jobs & send to queue
 		        while (true) {
 		            String line = reader.readLine();
 		            if (line == null) break;
 		            
 		            if (!line.isEmpty()) {
-		            	msg = new GenericMessage(createJob(line,_jobCounter));
+		            	GenericMessage msg = new GenericMessage(createJob(line,_jobCounter));
 		            	jobsQueue.enqueueMessage(msg.toXML());
 		            	_jobCounter++;
 		            }
 		        }
-		        
 		        reader.close();
 		        
-		        int numQueued = jobsQueue.getNumberOfItems();
+		        int numJobsQueued = jobsQueue.getNumberOfItems();
+		        logger.info("Number of queued items: " + numJobsQueued);
 		        
-		        logger.info("Number of queued items: " + numQueued);
+		        // start required worker nodes
+		        startWorkers(numJobsQueued);
 		        
-		        // to be continued...
+		        // wait for all job result messages
+		        
 				
 			} else { //this is termination message
 				logger.info("Got terminate command");
 				
 				
-				
-				
-				
+
 			}
 			
 		} catch (Exception e) {
@@ -98,6 +95,31 @@ public class JobsManager implements Runnable {
 			e.printStackTrace();
 		}
 
+	}
+	
+	private Command waitForCommand() throws Exception {
+		Queue manageQueue = new Queue(Configuration.QUEUE_MANAGE);
+		String rawMsg = manageQueue.waitForMessage();
+		logger.info ("Got msg: " + rawMsg);
+		
+		// parse command
+		GenericMessage msg =  GenericMessage.fromXML(rawMsg);
+		if (!msg.type.equals("common.Command"))
+			throw new Exception("Invalid message type recieved.");
+		
+		manageQueue.deleteLastMessage();
+		
+		return (Command) msg.body;
+	}
+
+	private void startWorkers(int numJobsQueued) throws FileNotFoundException, IOException {
+		NodesMgmt mgmt = new NodesMgmt(NodeType.WORKER);
+		int numWorkersNeeded =  (numJobsQueued / _jobsPerWorker);
+		if (numWorkersNeeded == 0)
+			numWorkersNeeded = 1;
+		numWorkersNeeded -= mgmt.getNumberOfRunningInstances();
+		logger.info("Creating " + numWorkersNeeded + " workers");
+		mgmt.runInstances(numWorkersNeeded);
 	}
 	
 	private Job createJob(String imgURL, int serial) {

@@ -22,14 +22,17 @@ public class Storage {
 	private AmazonS3Client _s3;
 	
 	public Storage (String name) throws FileNotFoundException, IOException {
-		_s3 = new AmazonS3Client(new PropertiesCredentials(
-        		//DistManager.class.getResourceAsStream("/AwsCredentials.properties")));
-        		new FileInputStream(Configuration.CREDS_FILE)));
+		File creds = new File(Configuration.CREDS_FILE);
+		if (creds.exists()) {
+			_s3 = new AmazonS3Client(new PropertiesCredentials(creds));
+		} else {
+			_s3 = new AmazonS3Client();
+		}
         _s3.setEndpoint(Configuration.S3_ENDPOINT);
         _bucket = name;
 	}
 	
-	// Gets a file from s3
+	// Gets a file from s3 (dont forget to close the reader)
 	public BufferedReader get(String key) {
 		logger.info("Downloading an object");
         S3Object object = _s3.getObject(new GetObjectRequest(_bucket, key));
@@ -37,7 +40,7 @@ public class Storage {
         return new BufferedReader(new InputStreamReader(object.getObjectContent()));
 	}
 	
-	// Uploads the file and returns the key used in S3 
+	// Uploads a file and returns the key used in S3 
 	public String put (File file) {        
 		logger.info("Uploading a new object to S3 from a file\n");
         String key = file.getName().replace('\\', '_').replace('/','_').replace(':', '_');

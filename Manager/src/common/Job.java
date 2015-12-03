@@ -6,6 +6,7 @@ import javax.xml.bind.annotation.*;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Job {
+	@SuppressWarnings("unused")
 	private Job () {
 		// for jaxb
 	}

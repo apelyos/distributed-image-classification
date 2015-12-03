@@ -1,5 +1,6 @@
 package dal;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -13,14 +14,11 @@ import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
-import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 
 import common.Configuration;
-import common.GenericMessage;
-import common.Job;
 
 public class Queue {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -35,9 +33,12 @@ public class Queue {
 	
 	public Queue (String queueName) throws FileNotFoundException, IOException {
         // init SQS
-        _sqs = new AmazonSQSClient(new PropertiesCredentials(
-        		//DistManager.class.getResourceAsStream("/AwsCredentials.properties")));
-        		new FileInputStream(Configuration.CREDS_FILE)));
+		File creds = new File(Configuration.CREDS_FILE);
+		if (creds.exists()) {
+			_sqs = new AmazonSQSClient(new PropertiesCredentials(creds));
+		} else {
+			_sqs = new AmazonSQSClient();
+		}
         _sqs.setEndpoint(Configuration.SQS_ENDPOINT);
         _queueName = queueName;
         _queueURL = getQueueUrl(queueName);
