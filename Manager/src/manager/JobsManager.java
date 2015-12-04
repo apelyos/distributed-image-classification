@@ -20,12 +20,12 @@ import dal.NodesMgmt.NodeType;
 
 public class JobsManager implements Runnable {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-	private int _jobsPerWorker; 
 	private int _jobCounter;
+	private Command _cmd;
 	
-	public JobsManager(int jobsPerWorker) {
-		_jobsPerWorker = jobsPerWorker;
+	public JobsManager(Command cmd) {
 		_jobCounter = 0;
+		_cmd = cmd;
 	}
 	
 	@Override
@@ -42,79 +42,55 @@ public class JobsManager implements Runnable {
 //		Sends a message to the application with the location of the file.
 //
 //	If the message is a termination message, then the manager:
-//		Does not accept any more input files from local applications. However, it does serve the local application that sent the termination message.
+//		Does not accept any more input files from local applications. 
+//		However, it does serve the local application that sent the termination message.
 //		Waits for all the workers to finish their job, and then terminates them.
 //		Creates response messages for the jobs, if needed.
 //		Terminates.
 		
 		try {
-			// wait for initiate command
-			Command cmd = waitForCommand();
+			logger.info("Got initiate command");
+			String fileKey = _cmd.fileKey;
+			logger.info("Got file Key: " + fileKey);
 			
-			if (cmd.type == CommandTypes.INITIATE) {
-				logger.info("Got initiate command");
-				String fileKey = cmd.payload;
-				logger.info("Got file Key: " + fileKey);
-				
-				// get file from storage
-				Storage storage = new Storage(Configuration.FILES_BUCKET_NAME);
-				BufferedReader reader = storage.get(fileKey);
-				
-				// read file by line, create jobs & send to queue
-				Queue jobsQueue = new Queue(Configuration.QUEUE_JOBS);
-		        while (true) {
-		            String line = reader.readLine();
-		            if (line == null) break;
-		            
-		            if (!line.isEmpty()) {
-		            	GenericMessage msg = new GenericMessage(createJob(line,_jobCounter));
-		            	jobsQueue.enqueueMessage(msg.toXML());
-		            	_jobCounter++;
-		            }
-		        }
-		        reader.close();
-		        
-		        int numJobsQueued = jobsQueue.getNumberOfItems();
-		        logger.info("Number of queued items: " + numJobsQueued);
-		        
-		        // start required worker nodes
-		        startWorkers(numJobsQueued);
-		        
-		        // wait for all job result messages
-		        
-				
-			} else { //this is termination message
-				logger.info("Got terminate command");
-				
-				
-
-			}
+			// get file from storage
+			Storage storage = new Storage(Configuration.FILES_BUCKET_NAME);
+			BufferedReader reader = storage.get(fileKey);
+			
+			// read file by line, create jobs & send to queue
+			Queue jobsQueue = new Queue(Configuration.QUEUE_JOBS);
+	        while (true) {
+	            String line = reader.readLine();
+	            if (line == null) break;
+	            
+	            if (!line.isEmpty()) {
+	            	GenericMessage msg = new GenericMessage(createJob(line,_jobCounter));
+	            	jobsQueue.enqueueMessage(msg.toXML());
+	            	_jobCounter++;
+	            }
+	        }
+	        reader.close();
+	        
+	        int numJobsQueued = jobsQueue.getNumberOfItems();
+	        logger.info("Number of queued items: " + numJobsQueued);
+	        
+	        // start required worker nodes
+	        startWorkers(numJobsQueued);
+	        
+	        // wait for all job result messages
+	        // To be continued
 			
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
 	}
 	
-	private Command waitForCommand() throws Exception {
-		Queue manageQueue = new Queue(Configuration.QUEUE_MANAGE);
-		String rawMsg = manageQueue.waitForMessage();
-		logger.info ("Got msg: " + rawMsg);
-		
-		// parse command
-		GenericMessage msg =  GenericMessage.fromXML(rawMsg);
-		if (!msg.type.equals("common.Command"))
-			throw new Exception("Invalid message type recieved.");
-		
-		manageQueue.deleteLastMessage();
-		
-		return (Command) msg.body;
-	}
+
 
 	private void startWorkers(int numJobsQueued) throws FileNotFoundException, IOException {
 		NodesMgmt mgmt = new NodesMgmt(NodeType.WORKER);
-		int numWorkersNeeded =  (numJobsQueued / _jobsPerWorker);
+		int numWorkersNeeded =  (numJobsQueued / _cmd.jobsPerWorker);
 		if (numWorkersNeeded == 0)
 			numWorkersNeeded = 1;
 		numWorkersNeeded -= mgmt.getNumberOfRunningInstances();

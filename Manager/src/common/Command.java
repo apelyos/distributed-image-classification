@@ -9,10 +9,12 @@ public class Command {
 	
 	@XmlEnum
 	public enum CommandTypes {
-		INITIATE, TERMINATE
+		INITIATE, INITIATE_AND_TERMINATE
 	}
 	
 	public CommandTypes type;
 	
-	public String payload;
+	public String fileKey;
+	
+	public int jobsPerWorker;
 }

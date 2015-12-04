@@ -34,7 +34,8 @@ public class Sandbox {
 		// create test object
 		Command cmd = new Command();
 		cmd.type = CommandTypes.INITIATE;
-		cmd.payload = "image-urls.txt";
+		cmd.fileKey = "image-urls.txt";
+		cmd.jobsPerWorker = 10;
 		GenericMessage message1 = new GenericMessage(cmd);
 		
 		// format outgoing message
