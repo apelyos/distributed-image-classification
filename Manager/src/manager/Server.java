@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 import common.Command;
 import common.Command.CommandTypes;
 import common.Configuration;
-import common.GenericMessage;
 import dal.Queue;
 
 public class Server {
@@ -41,17 +40,9 @@ public class Server {
 	}
 
 	private Command waitForCommand() throws Exception {
-		Queue manageQueue = new Queue(Configuration.QUEUE_MANAGE);
-		String rawMsg = manageQueue.waitForMessage();
-		logger.info ("Got msg: " + rawMsg);
-		
-		// parse command
-		GenericMessage msg =  GenericMessage.fromXML(rawMsg);
-		if (!msg.type.equals("common.Command"))
-			throw new Exception("Invalid message type recieved.");
-		
+		Queue<Command> manageQueue = new Queue<Command>(Configuration.QUEUE_MANAGE, Command.class);
+		Command cmd = manageQueue.waitForMessage();
 		manageQueue.deleteLastMessage();
-		
-		return (Command) msg.body;
+		return cmd;
 	}
 }

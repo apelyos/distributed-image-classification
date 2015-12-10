@@ -6,12 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBException;
-
 import common.Command;
-import common.GenericMessage;
 import common.Job;
-import common.Command.CommandTypes;
 import common.Configuration;
 import dal.NodesMgmt;
 import dal.Queue;
@@ -30,23 +26,23 @@ public class JobsManager implements Runnable {
 	
 	@Override
 	public void run() {
-//		If the message is that of a new task it:
-//		Downloads the input file from S3.
-//		Distributes the operations to be performed on the images to the workers using SQS queue/s.
-//		Checks the SQS message count and starts Worker processes (nodes) accordingly.
-//		The manager should create a worker for every n messages, if there are no running workers.
-//		If there are k active workers, and the new job requires m workers, then the manager should create m-k new workers, if possible.
-//		After the manger receives response messages from the workers on all the files on an input file, then it:
-//		Creates a summary output file accordingly,
-//		Uploads the output file to S3,
-//		Sends a message to the application with the location of the file.
-//
-//	If the message is a termination message, then the manager:
-//		Does not accept any more input files from local applications. 
-//		However, it does serve the local application that sent the termination message.
-//		Waits for all the workers to finish their job, and then terminates them.
-//		Creates response messages for the jobs, if needed.
-//		Terminates.
+	//		If the message is that of a new task it:
+	//		Downloads the input file from S3.
+	//		Distributes the operations to be performed on the images to the workers using SQS queue/s.
+	//		Checks the SQS message count and starts Worker processes (nodes) accordingly.
+	//		The manager should create a worker for every n messages, if there are no running workers.
+	//		If there are k active workers, and the new job requires m workers, then the manager should create m-k new workers, if possible.
+	//		After the manger receives response messages from the workers on all the files on an input file, then it:
+	//		Creates a summary output file accordingly,
+	//		Uploads the output file to S3,
+	//		Sends a message to the application with the location of the file.
+	//
+	//	If the message is a termination message, then the manager:
+	//		Does not accept any more input files from local applications. 
+	//		However, it does serve the local application that sent the termination message.
+	//		Waits for all the workers to finish their job, and then terminates them.
+	//		Creates response messages for the jobs, if needed.
+	//		Terminates.
 		
 		try {
 			logger.info("Got initiate command");
@@ -58,14 +54,13 @@ public class JobsManager implements Runnable {
 			BufferedReader reader = storage.get(fileKey);
 			
 			// read file by line, create jobs & send to queue
-			Queue jobsQueue = new Queue(Configuration.QUEUE_JOBS);
+			Queue<Job> jobsQueue = new Queue<Job>(Configuration.QUEUE_JOBS, Job.class);
 	        while (true) {
 	            String line = reader.readLine();
 	            if (line == null) break;
-	            
+
 	            if (!line.isEmpty()) {
-	            	GenericMessage msg = new GenericMessage(createJob(line,_jobCounter));
-	            	jobsQueue.enqueueMessage(msg.toXML());
+	            	jobsQueue.enqueueMessage(createJob(line,_jobCounter));
 	            	_jobCounter++;
 	            }
 	        }

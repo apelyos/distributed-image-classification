@@ -1,13 +1,16 @@
 package dal;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
+import javax.xml.bind.JAXBException;
+
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.PropertiesCredentials;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
@@ -19,19 +22,21 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 
 import common.Configuration;
+import common.GenericMessage;
 
-public class Queue {
+public class Queue<T>{ 
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private String _queueName;
 	private String _queueURL;
 	private Message _lastMessage;
 	private AmazonSQS _sqs;
+	private final Class<T> _msgClass;
 	
 	private String getQueueUrl(String queueName) {
 		return 	_sqs.getQueueUrl(queueName).getQueueUrl();
 	}
-	
-	public Queue (String queueName) throws FileNotFoundException, IOException {
+		
+	public Queue (String queueName, Class<T> msgClass) throws FileNotFoundException, IOException {
         // init SQS
 		File creds = new File(Configuration.CREDS_FILE);
 		if (creds.exists()) {
@@ -43,20 +48,23 @@ public class Queue {
         _queueName = queueName;
         _queueURL = getQueueUrl(queueName);
         logger.info("got queue url: " + _queueURL);
+        _msgClass = msgClass;
 	}
 	
-	public void enqueueMessage (String message) {
+	public void enqueueMessage (T message) throws AmazonServiceException, AmazonClientException, JAXBException {
         // send msg
         logger.info("Sending a message to queue: " + _queueName);
-        _sqs.sendMessage(new SendMessageRequest(_queueURL, message));
-	}
+        GenericMessage msg = new GenericMessage(message);
+        _sqs.sendMessage(new SendMessageRequest(_queueURL, msg.toXML()));        
+	} 
 	
-	public String peekMessage() {
+	public T peekMessage() throws Exception {
 		return peekMessage(0);
 	}
 	
-	// only get
-	public String peekMessage(int waitFor) {
+	// this func only get a msg from q (does not remove it - you have to do it)
+	@SuppressWarnings("unchecked")
+	public T peekMessage(int waitFor) throws Exception {
         // Receive messages
 		logger.info("Trying to recieve message from: " + _queueName);
         ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(_queueURL);
@@ -72,13 +80,17 @@ public class Queue {
         	logger.info("    Body:          " + message.getBody());
             
             _lastMessage = message;
-            return message.getBody();
+            GenericMessage msg =  GenericMessage.fromXML(message.getBody());
+    		if (!msg.type.equals(_msgClass.getName()))
+    			throw new Exception("Invalid message type recieved.");
+    		
+            return (T) msg.body;
         }
 		return null;
 	}
 	
-	public String waitForMessage() {
-		String msg = null;
+	public T waitForMessage() throws Exception {
+		T msg = null;
 		
 		while (msg == null) {
 			msg = peekMessage(Configuration.DEFAULT_POLL_INTERVAL); //num of seconds to wait between polls
@@ -98,8 +110,8 @@ public class Queue {
 	}
 	
 	// get + delete
-	public String dequeueMessage() {
-		String msg = peekMessage();
+	public T dequeueMessage() throws Exception {
+		T msg = peekMessage();
 		deleteLastMessage();
 		return msg;
 	}
