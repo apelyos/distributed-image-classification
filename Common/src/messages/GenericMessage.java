@@ -1,4 +1,4 @@
-package common;
+package messages;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.InetAddress;

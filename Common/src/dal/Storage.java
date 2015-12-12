@@ -14,8 +14,6 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 
-import common.Configuration;
-
 public class Storage {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private String _bucket;

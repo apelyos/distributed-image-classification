@@ -21,8 +21,7 @@ import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 
-import common.Configuration;
-import common.GenericMessage;
+import messages.GenericMessage;
 
 public class Queue<T>{ 
 	private Logger logger = Logger.getLogger(this.getClass().getName());

@@ -1,10 +1,10 @@
-package common;
+package messages;
 import javax.xml.bind.annotation.*;
 
-// sent by the manager for localApp
+// sent by the workers for manager
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class Conclusion {
+public class JobResult {
 
 }

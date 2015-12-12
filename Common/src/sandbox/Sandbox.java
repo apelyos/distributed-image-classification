@@ -1,4 +1,4 @@
-package manager;
+package sandbox;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
@@ -13,9 +13,9 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import dal.NodesMgmt;
 import dal.NodesMgmt.NodeType;
-import common.GenericMessage;
-import common.Command;
-import common.Command.CommandTypes;
+import messages.Command;
+import messages.GenericMessage;
+import messages.Command.CommandTypes;
 
 public class Sandbox {
 

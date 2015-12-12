@@ -6,13 +6,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-import common.Command;
-import common.Job;
-import common.Configuration;
+import dal.Configuration;
 import dal.NodesMgmt;
 import dal.Queue;
 import dal.Storage;
 import dal.NodesMgmt.NodeType;
+import messages.Command;
+import messages.Job;
 
 public class JobsManager implements Runnable {
 	private Logger logger = Logger.getLogger(this.getClass().getName());

@@ -21,7 +21,6 @@ import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
-import common.Configuration;
 
 public class NodesMgmt {
 	private Logger logger = Logger.getLogger(this.getClass().getName());

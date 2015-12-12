@@ -1,4 +1,4 @@
-package common;
+package messages;
 import javax.xml.bind.annotation.*;
 
 // sent by the manager for workers

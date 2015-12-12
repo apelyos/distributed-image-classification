@@ -5,10 +5,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-import common.Command;
-import common.Command.CommandTypes;
-import common.Configuration;
+import dal.Configuration;
 import dal.Queue;
+import messages.Command;
+import messages.Command.CommandTypes;
 
 public class Server {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
