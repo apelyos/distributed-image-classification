@@ -6,5 +6,5 @@ import javax.xml.bind.annotation.*;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class Conclusion {
-
+	public String fileKey;
 }
