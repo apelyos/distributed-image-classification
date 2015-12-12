@@ -11,12 +11,15 @@ public class Job {
 		// for jaxb
 	}
 	
-	public Job (String imgURL, int serial) {
-		imageUrl = imgURL;
-		serialNumber = serial; 
+	public Job (String imgURL, int serial, String managerUuid) {
+		this.imageUrl = imgURL;
+		this.serialNumber = serial; 
+		this.managerUuid = managerUuid;
 	}
 	
     public int serialNumber;
     
     public String imageUrl;
+    
+    public String managerUuid;
 }
