@@ -4,6 +4,7 @@ package manager;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 import dal.Configuration;
@@ -18,10 +19,12 @@ public class JobsManager implements Runnable {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private int _jobCounter;
 	private Command _cmd;
+	private String _uuid;
 	
 	public JobsManager(Command cmd) {
 		_jobCounter = 0;
 		_cmd = cmd;
+		_uuid = UUID.randomUUID().toString(); 
 	}
 	
 	@Override
@@ -95,6 +98,6 @@ public class JobsManager implements Runnable {
 	
 	private Job createJob(String imgURL, int serial) {
 		logger.info("Creating job number " + serial + ", with url: " + imgURL);
-		return new Job(imgURL, serial);
+		return new Job(imgURL, serial, _uuid);
 	}
 }
