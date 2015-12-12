@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 
 import com.amazonaws.auth.PropertiesCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
@@ -39,11 +40,20 @@ public class Storage {
         return new BufferedReader(new InputStreamReader(object.getObjectContent()));
 	}
 	
+	public String put (File file) {
+		return put(file, false);
+	}
+	
 	// Uploads a file and returns the key used in S3 
-	public String put (File file) {        
+	public String put (File file, boolean isPublic) {        
 		logger.info("Uploading a new object to S3 from a file\n");
         String key = file.getName().replace('\\', '_').replace('/','_').replace(':', '_');
-        PutObjectRequest req = new PutObjectRequest(_bucket, key, file);
+        PutObjectRequest req;
+        if (isPublic) {
+        	req = new PutObjectRequest(_bucket, key, file).withCannedAcl(CannedAccessControlList.PublicRead);
+        } else {
+        	req = new PutObjectRequest(_bucket, key, file);
+        }
         _s3.putObject(req);
         return key;
 	}

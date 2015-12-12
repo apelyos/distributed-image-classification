@@ -3,6 +3,7 @@ package dal;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -24,9 +25,10 @@ import common.Configuration;
 
 public class NodesMgmt {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
-	AmazonEC2 _ec2;
-	NodeType _ofType;
-	String _defaultTag;
+	private AmazonEC2 _ec2;
+	private NodeType _ofType;
+	private String _defaultTag;
+	private final String _tagKey = "Type";
 	
 	public enum NodeType {
 		MANAGEMENT, WORKER
@@ -59,7 +61,7 @@ public class NodesMgmt {
 
 		List<String> valuesT1 = new ArrayList<String>();
 		valuesT1.add(_defaultTag);
-		Filter filter1 = new Filter("tag:type", valuesT1);
+		Filter filter1 = new Filter("tag:" + _tagKey, valuesT1);
 		List<String> valuesT2 = new ArrayList<String>();
 		valuesT2.add("running"); 
 		valuesT2.add("pending");
@@ -95,11 +97,13 @@ public class NodesMgmt {
         prof.setName(Configuration.EC2_IAM_PROFILE); // security concerns
         request.setIamInstanceProfile(prof);
         request.setUserData(getStartupScript()); // base64
-        
+        request.setKeyName(Configuration.EC2_KEYPAIR_NAME);
         List<Instance> instances = _ec2.runInstances(request).getReservation().getInstances();
         
         List<Tag> tags = new ArrayList<Tag>();
-        tags.add(new Tag("type", _defaultTag));
+        tags.add(new Tag(_tagKey, _defaultTag));
+        tags.add(new Tag("Name", _ofType.toString().toLowerCase()));
+        
         logger.info("Launch instances: " + instances);
         
         List<String> instancesID = new ArrayList<String>();
@@ -115,17 +119,21 @@ public class NodesMgmt {
 	}
 	
 	private String getStartupScript() {
-		String script = null;
+		String script = String.join("\r\n"
+		         , "#!/bin/bash"
+		         , "yum install java-1.8.0 -q -y"
+		         , "alternatives --set java /usr/lib/jvm/jre-1.8.0-openjdk.x86_64/bin/java"
+		         , "aws s3 cp s3://dsps161-ass1-binaries/{0} /tmp/{0} --region us-west-2"
+		         , "chmod +x /tmp/{0}"
+		         , "java -jar /tmp/{0} {1}"
+		         );
 		
 		if (_ofType == NodeType.WORKER) {
 			// worker startup script
-			script = String.join("\r\n"
-			         , "#!/bin/bash"
-			         , "echo \"Hello world!\""
-			);
+			script = MessageFormat.format(script, "HelloWorld.jar", "");
 		} else {
-			// TODO
 			// manager startup script
+			script = MessageFormat.format(script, "HelloWorld.jar", "");
 		}
 		
 		return Base64.getEncoder().encodeToString(script.getBytes());
