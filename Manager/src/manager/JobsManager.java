@@ -19,12 +19,12 @@ public class JobsManager implements Runnable {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private int _jobCounter;
 	private Command _cmd;
-	private String _uuid;
+	private UUID _uuid;
 	
 	public JobsManager(Command cmd) {
 		_jobCounter = 0;
 		_cmd = cmd;
-		_uuid = UUID.randomUUID().toString(); 
+		_uuid = UUID.randomUUID(); 
 	}
 	
 	@Override
