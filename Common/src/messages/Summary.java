@@ -32,7 +32,11 @@ public class Summary {
 	
 	// can return null so beware
 	public List<String> getListOfSize(ImageSize imgSize) {
-		return map.get(imgSize).getList();
+		ListWrapper res =  map.get(imgSize);
+		if (res != null) 
+			return res.getList();
+		
+		return null;
 	}
 }
 
