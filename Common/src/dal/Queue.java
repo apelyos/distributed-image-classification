@@ -14,10 +14,12 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.PropertiesCredentials;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
+import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
 import com.amazonaws.services.sqs.model.Message;
+import com.amazonaws.services.sqs.model.QueueNameExistsException;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 
@@ -32,7 +34,11 @@ public class Queue<T>{
 	private final Class<T> _msgClass;
 	
 	private String getQueueUrl(String queueName) {
-		return 	_sqs.getQueueUrl(queueName).getQueueUrl();
+		try {
+			return createQueue(queueName);
+		} catch (QueueNameExistsException e) {
+			return 	_sqs.getQueueUrl(queueName).getQueueUrl();
+		}
 	}
 		
 	public Queue (String queueName, Class<T> msgClass) throws FileNotFoundException, IOException {
@@ -50,8 +56,14 @@ public class Queue<T>{
         _msgClass = msgClass;
 	}
 	
+	// returns URL of the new queue (or URL of an existing one)
+	private String createQueue (String queueName) {
+		logger.info("Creating/Getting SQS queue called: " + queueName);
+        CreateQueueRequest createQueueRequest = new CreateQueueRequest(queueName);
+        return _sqs.createQueue(createQueueRequest).getQueueUrl();
+	}
+	
 	public void enqueueMessage (T message) throws AmazonServiceException, AmazonClientException, JAXBException {
-        // send msg
         logger.info("Sending a message to queue: " + _queueName);
         GenericMessage msg = new GenericMessage(message);
         _sqs.sendMessage(new SendMessageRequest(_queueURL, msg.toXML()));        
@@ -115,6 +127,7 @@ public class Queue<T>{
 		return msg;
 	}
 	
+	// returns number of messages in Q
 	public int getNumberOfItems() {
 		String key = "ApproximateNumberOfMessages";
 		List<String> attrib = Arrays.asList(key);
