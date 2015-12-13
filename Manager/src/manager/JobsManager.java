@@ -33,7 +33,7 @@ public class JobsManager implements Runnable {
 	public JobsManager(Command cmd) {
 		_jobCounter = 0;
 		_cmd = cmd;
-		_uuid = UUID.randomUUID(); 
+		_uuid = cmd.key; 
 	}
 	
 	@Override
@@ -118,7 +118,7 @@ public class JobsManager implements Runnable {
 		String conKey = resStore.putStream("summary_" + _uuid, new StringInputStream(sumM.toXML()));
 		return conKey;
 	}
-
+ 
 	private void sendConclusionMessage(String conKey) throws FileNotFoundException, IOException, JAXBException {
 		logger.info("Sending conclusion message to client");
 		Queue<Conclusion> mngRes = new Queue<Conclusion>(Configuration.QUEUE_MANAGE_RESULT, Conclusion.class);
