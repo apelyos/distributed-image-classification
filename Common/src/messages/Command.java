@@ -1,4 +1,6 @@
 package messages;
+import java.util.UUID;
+
 import javax.xml.bind.annotation.*;
 
 // sent by the localApp for manager 
@@ -13,6 +15,8 @@ public class Command {
 	}
 	
 	public CommandTypes type;
+	
+	public UUID key;
 	
 	public String fileKey;
 	
