@@ -1,4 +1,5 @@
 package messages;
+
 import java.util.UUID;
 
 import javax.xml.bind.annotation.*;
@@ -11,28 +12,22 @@ import javax.xml.bind.annotation.*;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class JobResult {
-	/*
-	KEY TABLE:
-		Thumbnail: up to 64x64
-		Small: up to 256x256
-		Medium: up to 640x480
-		Large: up to 1024x768
-		Huge: larger than 1024x768
-		Dead: dead link
-	 */
+
 	@XmlEnum
-	public enum ImageSizes {THUMBNAIL, SMALL, MEDIUM, LARGE, HUGE, DEAD}
+	public enum ImageSize {THUMBNAIL, SMALL, MEDIUM, LARGE, HUGE, DEAD}
     public int serialNumber;
     public String imageURL;
     public UUID managerUUID;
+    public ImageSize size;
     
 	@SuppressWarnings("unused")
 	private JobResult () {}
 	
-	public JobResult (String imageURL, int serialNumber, UUID managerUUID) {
+	public JobResult (String imageURL, int serialNumber, UUID managerUUID, ImageSize size) {
 		this.imageURL = imageURL;
 		this.serialNumber = serialNumber; 
 		this.managerUUID = managerUUID;
+		this.size = size;
 	}
 }
 
