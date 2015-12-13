@@ -16,7 +16,6 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.util.StringInputStream;
 
 public class Storage {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -48,7 +47,8 @@ public class Storage {
 	
 	public String putStream (String key, InputStream stream) throws UnsupportedEncodingException {
 		key = key.replace('\\', '_').replace('/','_').replace(':', '_');
-		_s3.putObject(_bucket, key, stream, new ObjectMetadata());
+		ObjectMetadata metadata = new ObjectMetadata();
+		_s3.putObject(_bucket, key, stream, metadata);
 		return key;
 	}
 	

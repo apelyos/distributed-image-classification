@@ -86,8 +86,6 @@ public class Queue<T>{
         
         for (Message message : messages) {
         	logger.info("  Got Message");
-        	logger.info("    MessageId:     " + message.getMessageId());
-        	logger.info("    ReceiptHandle: " + message.getReceiptHandle());
         	logger.info("    Body:          " + message.getBody());
             
             _lastMessage = message;

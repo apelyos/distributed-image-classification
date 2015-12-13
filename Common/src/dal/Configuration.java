@@ -13,6 +13,7 @@ public class Configuration {
 	public static final String QUEUE_MANAGE = "Ass1_Manage";
 	public static final String QUEUE_JOBS = "Ass1_Jobs";
 	public static final String QUEUE_COMPLETED_JOBS = "Ass1_JobResults";
+	public static final String QUEUE_MANAGE_RESULT = "Ass1_ManageResults";
 	public static final String EC2_IMAGE_ID = "ami-f0091d91"; // amazon image
 	public static final String EC2_INSTANCE_TYPE = "t2.micro";
 	public static final String EC2_TAG_PREFIX = "DSPS_Ass1_";

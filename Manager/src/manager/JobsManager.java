@@ -4,8 +4,13 @@ package manager;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.UUID;
 import java.util.logging.Logger;
+
+import javax.xml.bind.JAXBException;
+
+import com.amazonaws.util.StringInputStream;
 
 import dal.Configuration;
 import dal.NodesMgmt;
@@ -13,7 +18,11 @@ import dal.Queue;
 import dal.Storage;
 import dal.NodesMgmt.NodeType;
 import messages.Command;
+import messages.Conclusion;
+import messages.GenericMessage;
 import messages.Job;
+import messages.JobResult;
+import messages.Summary;
 
 public class JobsManager implements Runnable {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -76,15 +85,45 @@ public class JobsManager implements Runnable {
 	        startWorkers(numJobsQueued);
 	        
 	        // wait for all job result messages
-	        // To be continued
+	        logger.info("Wating for jobs completions");
+	        Queue<JobResult> jobsComplete = new Queue<JobResult>(Configuration.QUEUE_COMPLETED_JOBS, JobResult.class);
+	        Summary sum = new Summary();
+	        
+	        while (_jobCounter > 0) {
+	        	JobResult res = jobsComplete.waitForMessage();
+	        	logger.info("Got job result with id " + res.serialNumber);
+	        	//if (res.managerUUID.equals(_uuid)) {
+	        		sum.addEntry(res.size, res.imageURL);
+		        	jobsComplete.deleteLastMessage();
+		        	_jobCounter--;
+	        	//}
+	        } 
+	        
+	        // send summary file
+	        String conKey = uploadSummary(sum);
+	        
+	        // send conclusion message
+	        sendConclusionMessage(conKey);
+
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 	}
-	
 
+	private String uploadSummary(Summary sum)throws Exception {
+		logger.info("Sending summary file to S3");
+		GenericMessage sumM = new GenericMessage(sum);
+		Storage resStore = new Storage(Configuration.FILES_BUCKET_NAME);
+		String conKey = resStore.putStream("summary_" + _uuid, new StringInputStream(sumM.toXML()));
+		return conKey;
+	}
+
+	private void sendConclusionMessage(String conKey) throws FileNotFoundException, IOException, JAXBException {
+		logger.info("Sending conclusion message to client");
+		Queue<Conclusion> mngRes = new Queue<Conclusion>(Configuration.QUEUE_MANAGE_RESULT, Conclusion.class);
+		mngRes.enqueueMessage(new Conclusion(conKey));
+	}
 
 	private void startWorkers(int numJobsQueued) throws FileNotFoundException, IOException {
 		NodesMgmt mgmt = new NodesMgmt(NodeType.WORKER);
