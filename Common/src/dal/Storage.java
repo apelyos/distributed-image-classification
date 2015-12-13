@@ -4,15 +4,19 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.logging.Logger;
 
 import com.amazonaws.auth.PropertiesCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.util.StringInputStream;
 
 public class Storage {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -30,20 +34,26 @@ public class Storage {
         _bucket = name;
 	}
 	
-	// Gets a file from s3 (dont forget to close the reader)
+	// Gets a file from s3 (don't forget to close the reader)
 	public BufferedReader get(String key) {
-		logger.info("Downloading an object");
+		logger.info("Downloading an object with key: " + key);
         S3Object object = _s3.getObject(new GetObjectRequest(_bucket, key));
         logger.info("Content-Type: "  + object.getObjectMetadata().getContentType());
         return new BufferedReader(new InputStreamReader(object.getObjectContent()));
 	}
 	
-	public String put (File file) {
-		return put(file, false);
+	public String putFile (File file) {
+		return putFile(file, false);
+	}
+	
+	public String putStream (String key, InputStream stream) throws UnsupportedEncodingException {
+		key = key.replace('\\', '_').replace('/','_').replace(':', '_');
+		_s3.putObject(_bucket, key, stream, new ObjectMetadata());
+		return key;
 	}
 	
 	// Uploads a file and returns the key used in S3 
-	public String put (File file, boolean isPublic) {        
+	public String putFile (File file, boolean isPublic) {        
 		logger.info("Uploading a new object to S3 from a file\n");
         String key = file.getName().replace('\\', '_').replace('/','_').replace(':', '_');
         PutObjectRequest req;

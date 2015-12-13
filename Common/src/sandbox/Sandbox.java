@@ -1,45 +1,52 @@
 package sandbox;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.List;
 import javax.xml.bind.*;
-import com.amazonaws.auth.PropertiesCredentials;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.AmazonSQSClient;
-import com.amazonaws.services.sqs.model.DeleteMessageRequest;
-import com.amazonaws.services.sqs.model.GetQueueUrlResult;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
-import com.amazonaws.services.sqs.model.SendMessageRequest;
 import dal.NodesMgmt;
+import dal.Queue;
 import dal.NodesMgmt.NodeType;
 import messages.Command;
 import messages.GenericMessage;
 import messages.Command.CommandTypes;
+import messages.JobResult.ImageSize;
+import messages.Summary;
 
 public class Sandbox {
 
 	public static void main(String[] args) throws JAXBException, IOException {
+		Summary sum = new Summary();
+		sum.addEntry(ImageSize.HUGE, "monkey");
+		sum.addEntry(ImageSize.HUGE, "monkey2");
+		sum.addEntry(ImageSize.HUGE, "monkey3");
+		sum.addEntry(ImageSize.MEDIUM, "med3");
+		GenericMessage sumM = new GenericMessage(sum);
+		System.out.println(sumM.toXML());
 		
+		GenericMessage sumR = GenericMessage.fromXML(sumM.toXML());
+		Summary sumt = (Summary) sumR.body;
+		System.out.println(sumt.getListOfSize(ImageSize.HUGE));
+		System.out.println(sumt.getListOfSize(ImageSize.MEDIUM));
 		
-		NodesMgmt mgmt = new NodesMgmt(NodeType.WORKER);
+		//NodesMgmt mgmt = new NodesMgmt(NodeType.WORKER);
 		// run an instance:
 		//List<String> res1 = mgmt.runInstances(1);
 		//System.out.println("IDs of the started instance: " + res1);
 		
 		// get running instances (IDs)
 		//mgmt.terminateAllRunningInstances();
-		System.out.println(mgmt.getAllRunningInstances());
+		//System.out.println(mgmt.getAllRunningInstances());
 		
 		// create test object
 		Command cmd = new Command();
 		cmd.type = CommandTypes.INITIATE_AND_TERMINATE;
 		cmd.fileKey = "image-urls.txt";
 		cmd.jobsPerWorker = 10;
-		GenericMessage message1 = new GenericMessage(cmd);
+		
+		Queue<Command> q = new Queue<Command>("Ass1_Manage", Command.class);
+		
+		q.enqueueMessage(cmd);
 		
 		// format outgoing message
-		String xml = message1.toXML();
+		/*String xml = message1.toXML();
         System.out.println(xml);
         
         // init SQS
@@ -49,7 +56,7 @@ public class Sandbox {
         sqs.setEndpoint("sqs.us-west-2.amazonaws.com");
         
         // get q url
-        GetQueueUrlResult qUrl = sqs.getQueueUrl("Ass1_Manage");
+        GetQueueUrlResult qUrl = sqs.getQueueUrl("Ass1_Manage_test");
         System.out.println(qUrl.getQueueUrl());
         
         // send msg
@@ -76,7 +83,7 @@ public class Sandbox {
             // Deletes a message
             System.out.println("Deleting the message.\n");
             sqs.deleteMessage(new DeleteMessageRequest(qUrl.getQueueUrl(), message.getReceiptHandle()));
-        }
+        }*/
 
 	}
 
