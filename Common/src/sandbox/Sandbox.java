@@ -1,9 +1,7 @@
 package sandbox;
 import java.io.IOException;
 import javax.xml.bind.*;
-import dal.NodesMgmt;
 import dal.Queue;
-import dal.NodesMgmt.NodeType;
 import messages.Command;
 import messages.GenericMessage;
 import messages.Command.CommandTypes;
@@ -25,6 +23,7 @@ public class Sandbox {
 		Summary sumt = (Summary) sumR.body;
 		System.out.println(sumt.getListOfSize(ImageSize.HUGE));
 		System.out.println(sumt.getListOfSize(ImageSize.MEDIUM));
+		System.out.println(sumt.getListOfSize(ImageSize.SMALL));
 		
 		//NodesMgmt mgmt = new NodesMgmt(NodeType.WORKER);
 		// run an instance:

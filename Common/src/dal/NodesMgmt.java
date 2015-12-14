@@ -129,10 +129,10 @@ public class NodesMgmt {
 		
 		if (_ofType == NodeType.WORKER) {
 			// worker startup script
-			script = MessageFormat.format(script, "HelloWorld.jar", "");
+			script = MessageFormat.format(script, "Worker.jar", "");
 		} else {
 			// manager startup script
-			script = MessageFormat.format(script, "HelloWorld.jar", "");
+			script = MessageFormat.format(script, "JobsManager.jar", "");
 		}
 		
 		return Base64.getEncoder().encodeToString(script.getBytes());
