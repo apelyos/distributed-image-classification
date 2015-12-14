@@ -1,7 +1,11 @@
 package localapp;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 import dal.Configuration;
@@ -86,31 +90,45 @@ public class Main {
 	}
 	
 	
-	private static void createHTMLs (Summary summary) {
-		if (summary.getListOfSize(ImageSize.HUGE) != null)
-			System.out.println("HUGE: " + summary.getListOfSize(ImageSize.HUGE));
-		else
-			System.out.println("there are no huge pics");
-		if (summary.getListOfSize(ImageSize.LARGE) != null)
-			System.out.println("LARGE: " + summary.getListOfSize(ImageSize.LARGE));
-		else
-			System.out.println("there are no large pics");
-		if (summary.getListOfSize(ImageSize.MEDIUM) != null)
-			System.out.println("MEDIUM: " + summary.getListOfSize(ImageSize.MEDIUM));
-		else
-			System.out.println("there are no medium pics");
-		if (summary.getListOfSize(ImageSize.SMALL) != null)
-			System.out.println("SMALL: " + summary.getListOfSize(ImageSize.SMALL));
-		else
-			System.out.println("there are no small pics");
-		if (summary.getListOfSize(ImageSize.THUMBNAIL) != null)
-			System.out.println("THUMBNAIL: " + summary.getListOfSize(ImageSize.THUMBNAIL));
-		else
-			System.out.println("there are no thumbnail pics");
-		if (summary.getListOfSize(ImageSize.DEAD) != null)
-			System.out.println("DEAD: " + summary.getListOfSize(ImageSize.DEAD));
-		else
-			System.out.println("there are no dead pics");
+	private static void createHTMLs (Summary summary) throws IOException {
+		final String htmlHeader = "<!DOCTYPE html>\n<html>\n<body>\n";
+		final String htmlHFooter = "\n</body>\n</html>";
+		String mainHTMLBody = "";
+		File mainHTML = new File ("Main.html");
+		BufferedWriter bw = new BufferedWriter(new FileWriter(mainHTML));
+		
+		for (int i = 0; i < 5; i++) {
+			ImageSize curSize = ImageSize.values()[i];
+			if (summary.getListOfSize(curSize) == null) {
+				mainHTMLBody += "<h1>"+curSize.toString()+"</h1>\n";
+				mainHTMLBody += "<p>No pictures exists in this size</p>\n";
+			} else {
+				File sizeHTML = new File (curSize.toString()+".html");
+				String sizedBody = "<h1>"+curSize.toString()+"</h1>\n";
+				mainHTMLBody += sizedBody;
+				BufferedWriter sizedBW = new BufferedWriter(new FileWriter(sizeHTML));
+				List<String> urls = summary.getListOfSize(curSize);
+				for (int j = 0; j < urls.size() ; j++) {
+					sizedBody += "<a href=\"" + urls.get(j) + "\">\n<img src=\"" + urls.get(j) + "\"></a><br> \n";
+					mainHTMLBody += "<a href=\""+ urls.get(j) +"\">" + urls.get(j) + "</a><br> \n";
+				}
+				sizedBW.write(htmlHeader+sizedBody+htmlHFooter);
+				sizedBW.close();
+			}
+		}
+		
+		mainHTMLBody += "<h1>"+ImageSize.DEAD.toString()+"</h1>\n";
+		if (summary.getListOfSize(ImageSize.DEAD) == null) 
+			mainHTMLBody += "<p>No pictures exists in this size</p>\n";
+		else {
+			List<String> urls = summary.getListOfSize(ImageSize.DEAD);
+			for (int j = 0; j < urls.size() ; j++) {
+				mainHTMLBody += "<a href=\""+ urls.get(j) +"\">" + urls.get(j) + "</a><br> \n";
+			}
+		}
+		
+		bw.write(htmlHeader+mainHTMLBody+htmlHFooter);
+		bw.close();
 	}
 
 	

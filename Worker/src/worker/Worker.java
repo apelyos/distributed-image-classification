@@ -3,16 +3,12 @@ package worker;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.logging.Logger;
-
 import javax.imageio.ImageIO;
-
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-
 import dal.Configuration;
 import dal.Queue;
 import messages.Job;
@@ -51,11 +47,6 @@ public class Worker {
 			CloseableHttpResponse response = httpclient.execute(httpget);
 			InputStream stream = response.getEntity().getContent(); 
 			BufferedImage image = ImageIO.read(stream);
-					  
-		
-		
-		//try {
-		//	BufferedImage image = ImageIO.read(new URL(task.imageUrl));
 			int pixSum = image.getHeight()*image.getWidth();
 			ImageSize size = calculateSize(pixSum);
 			JobResult result = new JobResult(task.imageUrl, task.serialNumber, task.managerUuid, size);
