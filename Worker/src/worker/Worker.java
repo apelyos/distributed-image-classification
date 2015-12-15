@@ -54,7 +54,6 @@ public class Worker {
        	if (id == null)
        		id = UUID.randomUUID().toString();
 		jobsQueue = new Queue<Job>(Configuration.QUEUE_JOBS, Job.class);
-		resultQueue = new Queue<JobResult>(Configuration.QUEUE_COMPLETED_JOBS, JobResult.class);
 		averageRunTime = 0;
 		workerStartTime = new Date();
     }
@@ -67,6 +66,7 @@ public class Worker {
 			Job task = fetchTask();
 			if (task == null)
 				break;
+			resultQueue = new Queue<JobResult>(Configuration.QUEUE_COMPLETED_JOBS+"_"+task.managerUuid.toString(), JobResult.class);
 			long startTaskTime = new Date().getTime();
 			doJob(task);
 			jobsQueue.deleteLastMessage();
