@@ -21,6 +21,7 @@ import com.amazonaws.services.ec2.model.Reservation;
 import com.amazonaws.services.ec2.model.RunInstancesRequest;
 import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
+import com.amazonaws.util.EC2MetadataUtils;
 
 public class NodesMgmt {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
@@ -85,6 +86,7 @@ public class NodesMgmt {
 		_ec2.terminateInstances(request);
 	}
 	
+	
 	// returns a list with the ID's of the running instances
 	public List<String> runInstances(int numberOfInstances) {
 		if (numberOfInstances <= 0)
@@ -138,5 +140,19 @@ public class NodesMgmt {
 		return Base64.getEncoder().encodeToString(script.getBytes());
 	}
 	
+	// can return null
+	public static String getMyInstanceID() {
+		return EC2MetadataUtils.getInstanceId();
+	}
 	
+	// will work only on an actual aws instance
+	public void commitSuicide() {
+		if (getMyInstanceID() != null) {
+			logger.info("Commiting suicide. See you in another life when we are both cats.");
+			List<String> instancesID = new ArrayList<String>();
+			instancesID.add(getMyInstanceID());
+			TerminateInstancesRequest request = new TerminateInstancesRequest(instancesID);
+			_ec2.terminateInstances(request);
+		}
+	}
 }

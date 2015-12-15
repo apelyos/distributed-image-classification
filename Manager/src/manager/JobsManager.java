@@ -4,6 +4,7 @@ package manager;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -124,14 +125,14 @@ public class JobsManager implements Runnable {
 		mngRes.enqueueMessage(new Conclusion(conKey));
 	}
 
-	private void startWorkers(int numJobsQueued) throws FileNotFoundException, IOException {
+	private List<String> startWorkers(int numJobsQueued) throws FileNotFoundException, IOException {
 		NodesMgmt mgmt = new NodesMgmt(NodeType.WORKER);
 		int numWorkersNeeded =  (numJobsQueued / _cmd.jobsPerWorker);
 		if (numWorkersNeeded == 0)
 			numWorkersNeeded = 1;
 		numWorkersNeeded -= mgmt.getNumberOfRunningInstances();
 		logger.info("Creating " + numWorkersNeeded + " workers");
-		mgmt.runInstances(numWorkersNeeded);
+		return mgmt.runInstances(numWorkersNeeded);
 	}
 	
 	private Job createJob(String imgURL, int serial) {

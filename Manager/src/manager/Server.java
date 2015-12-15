@@ -6,7 +6,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import dal.Configuration;
+import dal.NodesMgmt;
 import dal.Queue;
+import dal.NodesMgmt.NodeType;
 import messages.Command;
 import messages.Command.CommandTypes;
 
@@ -35,8 +37,10 @@ public class Server {
 				taskExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
 				break;
 			}
-
 		}
+		
+		NodesMgmt mgmt = new NodesMgmt(NodeType.MANAGEMENT);
+		mgmt.commitSuicide();
 	}
 
 	private Command waitForCommand() throws Exception {

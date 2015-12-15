@@ -1,6 +1,10 @@
 package sandbox;
 import java.io.IOException;
 import javax.xml.bind.*;
+
+import com.amazonaws.util.EC2MetadataUtils;
+
+import dal.NodesMgmt;
 import dal.Queue;
 import messages.Command;
 import messages.GenericMessage;
@@ -11,6 +15,9 @@ import messages.Summary;
 public class Sandbox {
 
 	public static void main(String[] args) throws JAXBException, IOException {
+		String instanceId = NodesMgmt.getMyInstanceID();
+		System.out.println(instanceId);
+		
 		Summary sum = new Summary();
 		sum.addEntry(ImageSize.HUGE, "monkey");
 		sum.addEntry(ImageSize.HUGE, "monkey2");
