@@ -10,6 +10,7 @@ public class Configuration {
 	public static final int DEFAULT_POLL_INTERVAL = 20; // seconds - max 20 - min 0
 	public static final String FILES_BUCKET_NAME = "dsps161-ass1-files";
 	public static final String BINARIES_BUCKET_NAME = "dsps161-ass1-binaries";
+	public static final String STATISTICS_BUCKET_NAME = "dsps161-ass1-statistics";
 	public static final String QUEUE_MANAGE = "Ass1_Manage";
 	public static final String QUEUE_JOBS = "Ass1_Jobs";
 	public static final String QUEUE_COMPLETED_JOBS = "Ass1_JobResults";
