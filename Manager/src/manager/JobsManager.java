@@ -93,9 +93,9 @@ public class JobsManager implements Runnable {
 	        	JobResult res = jobsComplete.waitForMessage();
 	        	logger.info("Got job result with id " + res.serialNumber);
 	        	//if (res.managerUUID.equals(_uuid)) {
-	        		sum.addEntry(res.size, res.imageURL);
-		        	jobsComplete.deleteLastMessage();
-		        	_jobCounter--;
+        		sum.addEntry(res.size, res.imageURL);
+	        	jobsComplete.deleteLastMessage();
+	        	_jobCounter--;
 	        	//}
 	        } 
 	        

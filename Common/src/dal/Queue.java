@@ -95,6 +95,7 @@ public class Queue<T>{
         for (Message message : messages) {
         	logger.info("  Got Message");
         	logger.info("    Body:          " + message.getBody());
+        	logger.info("    Handle:        " + message.getReceiptHandle());
             
             _lastMessage = message;
             GenericMessage msg =  GenericMessage.fromXML(message.getBody());
@@ -120,7 +121,7 @@ public class Queue<T>{
 	public void deleteLastMessage() {
 		if (_lastMessage != null) {
 	        // Deletes a message
-			logger.info("Deleting the last message.\n");
+			logger.info("Deleting the last message with handle: " + _lastMessage.getReceiptHandle());
 	        _sqs.deleteMessage(new DeleteMessageRequest(_queueURL, _lastMessage.getReceiptHandle()));
 	        _lastMessage = null;
 		}

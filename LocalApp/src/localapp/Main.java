@@ -37,7 +37,7 @@ public class Main {
 		    String inputFile = args[0];
 		    String outputFile = args[1];
 		    jobsPerWorker = Integer.parseInt(args[2]);
-		    if (args.length == 3 && args[3].equals("terminate"))
+		    if (args.length == 4 && args[3].equals("terminate"))
 		    	terminate = true;
 		    imageFile = new File(inputFile);
 		    start(imageFile, outputFile, jobsPerWorker, terminate);

@@ -1,18 +1,25 @@
 package sandbox;
-import java.io.IOException;
-import javax.xml.bind.*;
 
+
+import dal.Configuration;
 import dal.NodesMgmt;
 import dal.Queue;
 import messages.Command;
 import messages.GenericMessage;
+import messages.JobResult;
 import messages.Command.CommandTypes;
 import messages.JobResult.ImageSize;
 import messages.Summary;
 
 public class Sandbox {
 
-	public static void main(String[] args) throws JAXBException, IOException {
+	public static void main(String[] args) throws Exception {
+		Queue<JobResult> jobsComplete = new Queue<JobResult>(Configuration.QUEUE_COMPLETED_JOBS, JobResult.class);
+    	jobsComplete.waitForMessage();
+    	jobsComplete.deleteLastMessage();
+
+		
+		
 		String instanceId = NodesMgmt.getMyInstanceID();
 		System.out.println(instanceId);
 		

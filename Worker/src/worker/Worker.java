@@ -76,7 +76,7 @@ public class Worker {
     	}
     	workerFinishTime = new Date();
     	averageRunTime = averageRunTime/loopCount;
-		logger.info("Finished orking, Sending statistics...");
+		logger.info("Finished working, Sending statistics...");
 		sendStatistics();
 		logger.info("Statistics sent, farewell *BOOM*");
 		NodesMgmt workerNode = new NodesMgmt(NodeType.WORKER);

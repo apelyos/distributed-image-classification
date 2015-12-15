@@ -54,7 +54,7 @@ public class Storage {
 	
 	// Uploads a file and returns the key used in S3 
 	public String putFile (File file, boolean isPublic) {        
-		logger.info("Uploading a new object to S3 from a file\n");
+		logger.info("Uploading a new object to S3 from a file");
         String key = file.getName().replace('\\', '_').replace('/','_').replace(':', '_');
         PutObjectRequest req;
         if (isPublic) {
