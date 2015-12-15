@@ -32,15 +32,16 @@ public class Server {
 			taskExecutor.execute(new JobsManager(cmd));
 			
 			if (cmd.type == CommandTypes.INITIATE_AND_TERMINATE) {
-				logger.info ("Got termination command, wating for termination & exiting");
+				logger.info ("Got termination command, wating for termination & terminating");
 				taskExecutor.shutdown();
 				taskExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+				
+				// terminate myself
+				NodesMgmt mgmt = new NodesMgmt(NodeType.MANAGEMENT);
+				mgmt.commitSuicide();
 				break;
 			}
 		}
-		
-		NodesMgmt mgmt = new NodesMgmt(NodeType.MANAGEMENT);
-		mgmt.commitSuicide();
 	}
 
 	private Command waitForCommand() throws Exception {

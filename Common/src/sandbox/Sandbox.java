@@ -2,8 +2,6 @@ package sandbox;
 import java.io.IOException;
 import javax.xml.bind.*;
 
-import com.amazonaws.util.EC2MetadataUtils;
-
 import dal.NodesMgmt;
 import dal.Queue;
 import messages.Command;
@@ -47,9 +45,10 @@ public class Sandbox {
 		cmd.fileKey = "image-urls.txt";
 		cmd.jobsPerWorker = 10;
 		
-		Queue<Command> q = new Queue<Command>("Ass1_Manage", Command.class);
+		Queue<Command> q = new Queue<Command>("Ass1_Manage_test", Command.class);
 		
 		q.enqueueMessage(cmd);
+		q.deleteQueue();
 		
 		// format outgoing message
 		/*String xml = message1.toXML();

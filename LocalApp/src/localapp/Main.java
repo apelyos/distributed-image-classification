@@ -32,20 +32,20 @@ public class Main {
 		
 		if (args.length < 3 || args.length > 4)
 			throw new IllegalArgumentException("Invalid number of arguments entered");
-		else
-		    try {
-		        String inputFile = args[0];
-		        String outputFile = args[1];
-		        jobsPerWorker = Integer.parseInt(args[2]);
-		        if (args.length == 3 && args[3].equals("terminate"))
-		        	terminate = true;
-		        imageFile = new File(inputFile);
-		        start(imageFile, outputFile, jobsPerWorker, terminate);
-		    } catch (IllegalArgumentException e) {
-		        System.err.println("Arguments" + args[0] + "and" + args[1] + " must be strings.");
-		        System.err.println("Argument" + args[2] + " must be an integer.");
-		        System.exit(1);
-		    } catch (Exception e) {e.printStackTrace();} 
+		
+		try {
+		    String inputFile = args[0];
+		    String outputFile = args[1];
+		    jobsPerWorker = Integer.parseInt(args[2]);
+		    if (args.length == 3 && args[3].equals("terminate"))
+		    	terminate = true;
+		    imageFile = new File(inputFile);
+		    start(imageFile, outputFile, jobsPerWorker, terminate);
+		} catch (IllegalArgumentException e) {
+		    System.err.println("Arguments " + args[0] + " and " + args[1] + " must be strings.");
+		    System.err.println("Argument " + args[2] + " must be an integer.");
+		    System.exit(1);
+		} catch (Exception e) {e.printStackTrace();} 
 	}
 	
 	
@@ -109,7 +109,9 @@ public class Main {
 		final String htmlHeader = "<!DOCTYPE html>\n<html>\n<body>\n";
 		final String htmlFooter = "\n</body>\n</html>";
 		String mainHTMLBody = "";
-		File mainHTML = new File (outputFile + ".html");
+		if (!outputFile.endsWith(".html")) 
+			outputFile += ".html";
+		File mainHTML = new File (outputFile);
 		BufferedWriter bw = new BufferedWriter(new FileWriter(mainHTML));	
 		
 		for (int i = 0; i < 5; i++) {
