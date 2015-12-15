@@ -61,7 +61,7 @@ public class Main {
 		logger.info("Starting Manager");
 		runManager();
 		logger.info("Waiting for conclusion key");
-		String summaryKey = waitForConclusionKey();
+		String summaryKey = waitForConclusionKey(key);
 		BufferedReader s3Output = s3_files.get(summaryKey);
 		logger.info("Fetching summary object");
 		Summary summary = getSummary (s3Output);
@@ -88,8 +88,8 @@ public class Main {
 		return cmd;
 	}
 	
-	private static String waitForConclusionKey() throws Exception {
-		Queue<Conclusion> mngRes = new Queue<Conclusion>(Configuration.QUEUE_MANAGE_RESULT, Conclusion.class);
+	private static String waitForConclusionKey(UUID key) throws Exception {
+		Queue<Conclusion> mngRes = new Queue<Conclusion>(Configuration.QUEUE_MANAGE_RESULT+ "_" + key.toString(), Conclusion.class);
 		Conclusion con = mngRes.waitForMessage();
 		mngRes.deleteLastMessage();
 		return con.fileKey;
