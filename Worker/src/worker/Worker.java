@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -31,8 +32,8 @@ import messages.JobResult.ImageSize;
 public class Worker {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private Queue<Job> jobsQueue;
-	private Queue<JobResult> resultQueue;
-	private String id;
+	private HashMap<UUID,Queue<JobResult>> resultQueues;
+	private String id; 
 	private Date workerStartTime;
 	private Date workerFinishTime;
 	private long averageRunTime;
@@ -54,6 +55,7 @@ public class Worker {
        	if (id == null)
        		id = UUID.randomUUID().toString();
 		jobsQueue = new Queue<Job>(Configuration.QUEUE_JOBS, Job.class);
+		resultQueues = new HashMap<UUID,Queue<JobResult>>();
 		averageRunTime = 0;
 		workerStartTime = new Date();
     }
@@ -66,7 +68,9 @@ public class Worker {
 			Job task = fetchTask();
 			if (task == null)
 				break;
-			resultQueue = new Queue<JobResult>(Configuration.QUEUE_COMPLETED_JOBS+"_"+task.managerUuid.toString(), JobResult.class);
+			UUID jobID = task.managerUuid;
+			if (!resultQueues.containsKey(jobID))
+				resultQueues.put(jobID, new Queue<JobResult>(Configuration.QUEUE_COMPLETED_JOBS+"_"+jobID.toString(), JobResult.class));
 			long startTaskTime = new Date().getTime();
 			doJob(task);
 			jobsQueue.deleteLastMessage();
@@ -104,11 +108,11 @@ public class Worker {
 			ImageSize size = calculateSize(pixSum);
 			JobResult result = new JobResult(task.imageUrl, task.serialNumber, task.managerUuid, size);
 			logger.info("Created jobResult number " + task.serialNumber + ", with url: " + task.imageUrl + ",sized: "+ size.toString());
-			resultQueue.enqueueMessage(result);
+			resultQueues.get(task.managerUuid).enqueueMessage(result);
 			handledURLs.add(task.imageUrl);
 		} catch (IOException e) {
 			JobResult result = new JobResult(task.imageUrl, task.serialNumber, task.managerUuid, ImageSize.DEAD);
-			resultQueue.enqueueMessage(result);
+			resultQueues.get(task.managerUuid).enqueueMessage(result);
 			failedURLs.add(task.imageUrl);
 		}
     }
