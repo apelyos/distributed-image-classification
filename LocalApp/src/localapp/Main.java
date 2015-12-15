@@ -109,9 +109,9 @@ public class Main {
 		final String htmlHeader = "<!DOCTYPE html>\n<html>\n<body>\n";
 		final String htmlFooter = "\n</body>\n</html>";
 		String mainHTMLBody = "";
-		if (!outputFile.endsWith(".html")) 
-			outputFile += ".html";
-		File mainHTML = new File (outputFile);
+		if (outputFile.endsWith(".html")) 
+			outputFile = outputFile.substring(0, outputFile.length() - 5);
+		File mainHTML = new File (outputFile+".html");
 		BufferedWriter bw = new BufferedWriter(new FileWriter(mainHTML));	
 		
 		for (int i = 0; i < 5; i++) {
