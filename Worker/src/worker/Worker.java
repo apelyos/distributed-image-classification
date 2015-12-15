@@ -115,7 +115,7 @@ public class Worker {
     
     public void sendStatistics() throws Exception { 
 		Storage s3_stats = new Storage(Configuration.STATISTICS_BUCKET_NAME);
-		File statFile = new File ("statistics.txt");
+		File statFile = new File ("statistics_"+ id +".txt");
 		BufferedWriter bw = new BufferedWriter(new FileWriter(statFile));	
 		bw.write(collectStats());
 		bw.close();
