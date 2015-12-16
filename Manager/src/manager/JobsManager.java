@@ -86,17 +86,15 @@ public class JobsManager implements Runnable {
 	        
 	        // wait for all job result messages
 	        logger.info("Wating for jobs completions");
-	        Queue<JobResult> jobsComplete = new Queue<JobResult>(Configuration.QUEUE_COMPLETED_JOBS, JobResult.class);
+	        Queue<JobResult> jobsComplete = new Queue<JobResult>(Configuration.QUEUE_COMPLETED_JOBS + "_" + _uuid, JobResult.class);
 	        Summary sum = new Summary();
 	        
 	        while (_jobCounter > 0) {
 	        	JobResult res = jobsComplete.waitForMessage();
 	        	logger.info("Got job result with id " + res.serialNumber);
-	        	//if (res.managerUUID.equals(_uuid)) {
         		sum.addEntry(res.size, res.imageURL);
 	        	jobsComplete.deleteLastMessage();
 	        	_jobCounter--;
-	        	//}
 	        } 
 	        
 	        // send summary file
@@ -121,7 +119,7 @@ public class JobsManager implements Runnable {
  
 	private void sendConclusionMessage(String conKey) throws FileNotFoundException, IOException, JAXBException {
 		logger.info("Sending conclusion message to client");
-		Queue<Conclusion> mngRes = new Queue<Conclusion>(Configuration.QUEUE_MANAGE_RESULT, Conclusion.class);
+		Queue<Conclusion> mngRes = new Queue<Conclusion>(Configuration.QUEUE_MANAGE_RESULT + "_" + _uuid, Conclusion.class);
 		mngRes.enqueueMessage(new Conclusion(conKey));
 	}
 

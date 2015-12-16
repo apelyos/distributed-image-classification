@@ -20,7 +20,7 @@ import com.amazonaws.services.sqs.model.DeleteQueueRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
 import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.QueueNameExistsException;
+import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 
@@ -34,15 +34,25 @@ public class Queue<T>{
 	private AmazonSQS _sqs;
 	private final Class<T> _msgClass;
 	
-	private String getQueueUrl(String queueName) {
+	// if passed with createIfNotExist=False can throw QueueDoesNotExistException
+	private String getQueueUrl(String queueName, boolean createIfNotExist) {
 		try {
-			return createQueue(queueName);
-		} catch (QueueNameExistsException e) {
-			return 	_sqs.getQueueUrl(queueName).getQueueUrl();
+			return _sqs.getQueueUrl(queueName).getQueueUrl();
+		} catch (QueueDoesNotExistException e) {
+			if (createIfNotExist) {
+				logger.info("Creating SQS queue called: " + queueName);
+				return createQueue(queueName);
+			}
+			
+			throw e;
 		}
 	}
-		
+	
 	public Queue (String queueName, Class<T> msgClass) throws FileNotFoundException, IOException {
+		this(queueName, msgClass, true);
+	}
+		
+	public Queue (String queueName, Class<T> msgClass, boolean createIfNotExist) throws FileNotFoundException, IOException {
         // init SQS
 		File creds = new File(Configuration.CREDS_FILE);
 		if (creds.exists()) {
@@ -52,14 +62,23 @@ public class Queue<T>{
 		}
         _sqs.setEndpoint(Configuration.SQS_ENDPOINT);
         _queueName = queueName;
-        _queueURL = getQueueUrl(queueName);
-        logger.info("got queue url: " + _queueURL);
+        _queueURL = getQueueUrl(queueName, createIfNotExist);
+        logger.info("Got queue url: " + _queueURL);
         _msgClass = msgClass;
+	}
+	
+	public boolean stillExists() {
+		try {
+			_sqs.getQueueUrl(_queueName);
+			return true;
+		} catch (QueueDoesNotExistException e) {
+			return false;
+		}
 	}
 	
 	// returns URL of the new queue (or URL of an existing one)
 	private String createQueue (String queueName) {
-		logger.info("Creating/Getting SQS queue called: " + queueName);
+		logger.info("Getting SQS queue called: " + queueName);
         CreateQueueRequest createQueueRequest = new CreateQueueRequest(queueName);
         return _sqs.createQueue(createQueueRequest).getQueueUrl();
 	}
