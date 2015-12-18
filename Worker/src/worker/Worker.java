@@ -79,7 +79,8 @@ public class Worker {
 			loopCount++;
     	}
     	workerFinishTime = new Date();
-    	averageRunTime = averageRunTime/loopCount;
+    	if (loopCount != 0)
+    		averageRunTime = averageRunTime/loopCount;
 		logger.info("Finished working, Sending statistics...");
 		sendStatistics();
 		logger.info("Statistics sent, farewell *BOOM*");
@@ -90,6 +91,17 @@ public class Worker {
     
     private Job fetchTask() throws Exception {
     	Job task = null;
+    	boolean outputQueues = true;
+    	while (task == null && outputQueues) {
+    		outputQueues = false;
+    		task = jobsQueue.peekMessage();
+    		for (Queue<JobResult> value : resultQueues.values()) {
+    			if (value.stillExists())
+    				outputQueues = true;
+    		} 
+    	}
+    	if (task != null)
+    		return task;
     	for(int i = 0; i < 3 && task == null ; i++)
     		task = jobsQueue.peekMessage(POLL_INTERVAL);
     	return task;
