@@ -65,9 +65,11 @@ public class Worker {
     	int loopCount = 0;
     	while(true) {
 			logger.info("fetching new task");
-			Job task = fetchTask();
-			if (task == null)
+			Job task = jobsQueue.waitForMessage();
+			if (task.terminate) {
+				jobsQueue.deleteLastMessage();
 				break;
+			}
 			UUID jobID = task.managerUuid;
 			if (!resultQueues.containsKey(jobID))
 				resultQueues.put(jobID, new Queue<JobResult>(Configuration.QUEUE_COMPLETED_JOBS+"_"+jobID.toString(), JobResult.class));
@@ -88,25 +90,6 @@ public class Worker {
 		workerNode.commitSuicide();
 		logger.info("Worker is dead.");
     }
-    
-    private Job fetchTask() throws Exception {
-    	Job task = null;
-    	boolean outputQueues = true;
-    	while (task == null && outputQueues) {
-    		outputQueues = false;
-    		task = jobsQueue.peekMessage();
-    		for (Queue<JobResult> value : resultQueues.values()) {
-    			if (value.stillExists())
-    				outputQueues = true;
-    		} 
-    	}
-    	if (task != null)
-    		return task;
-    	for(int i = 0; i < 3 && task == null ; i++)
-    		task = jobsQueue.peekMessage(POLL_INTERVAL);
-    	return task;
-    }
-    
     
     public void doJob(Job task) throws Exception { 
 		
