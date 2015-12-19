@@ -39,7 +39,6 @@ public class Worker {
 	private long averageRunTime;
 	private List<String> handledURLs = new ArrayList<String>();
 	private List<String> failedURLs = new ArrayList<String>();
-	private static final int POLL_INTERVAL = 5;
 
 	
     public static void main(String[] args) {
