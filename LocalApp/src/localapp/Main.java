@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -30,6 +31,8 @@ public class Main {
 		int jobsPerWorker;
 		boolean terminate = false;
 		
+		long startTaskTime = new Date().getTime();
+
 		if (args.length < 3 || args.length > 4)
 			throw new IllegalArgumentException("Invalid number of arguments entered");
 		
@@ -46,6 +49,9 @@ public class Main {
 		    System.err.println("Argument " + args[2] + " must be an integer.");
 		    System.exit(1);
 		} catch (Exception e) {e.printStackTrace();} 
+		
+		long endTaskTime = new Date().getTime();
+		logger.info("Total running time: " + (endTaskTime-startTaskTime)/1000 + "s");
 	}
 	
 	
@@ -65,6 +71,7 @@ public class Main {
 		BufferedReader s3Output = s3_files.get(summaryKey);
 		logger.info("Fetching summary object");
 		Summary summary = getSummary (s3Output);
+		s3Output.close();
 		logger.info("Creating HTML output files");
 		createHTMLs(summary, outputFile);
 		logger.info("DONE!");
@@ -92,6 +99,7 @@ public class Main {
 		Queue<Conclusion> mngRes = new Queue<Conclusion>(Configuration.QUEUE_MANAGE_RESULT+ "_" + key.toString(), Conclusion.class);
 		Conclusion con = mngRes.waitForMessage();
 		mngRes.deleteLastMessage();
+		mngRes.deleteQueue();
 		return con.fileKey;
 	}
 	
