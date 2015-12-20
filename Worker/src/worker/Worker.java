@@ -4,12 +4,10 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -37,9 +35,8 @@ public class Worker {
 	private Date workerStartTime;
 	private Date workerFinishTime;
 	private long averageRunTime;
-	private List<String> handledURLs = new ArrayList<String>();
-	private List<String> failedURLs = new ArrayList<String>();
-
+	private HashMap<String, ArrayList<String>> urls;
+	private int urlCounter = 0;
 	
     public static void main(String[] args) {
     	try {
@@ -55,13 +52,14 @@ public class Worker {
        		id = UUID.randomUUID().toString();
 		jobsQueue = new Queue<Job>(Configuration.QUEUE_JOBS, Job.class);
 		resultQueues = new HashMap<UUID,Queue<JobResult>>();
+		urls = new HashMap<String,ArrayList<String>>();
+		urls.put("completed", new ArrayList<String>());
 		averageRunTime = 0;
 		workerStartTime = new Date();
     }
 
     
     public void work() throws Exception {
-    	int loopCount = 0;
     	while(true) {
 			logger.info("fetching new task");
 			Job task = jobsQueue.waitForMessage();
@@ -77,11 +75,11 @@ public class Worker {
 			jobsQueue.deleteLastMessage();
 			long endTaskTime = new Date().getTime();
 			averageRunTime += (endTaskTime-startTaskTime);
-			loopCount++;
+			urlCounter++;
     	}
     	workerFinishTime = new Date();
-    	if (loopCount != 0)
-    		averageRunTime = averageRunTime/loopCount;
+    	if (urlCounter != 0)
+    		averageRunTime = averageRunTime/urlCounter;
 		logger.info("Finished working, Sending statistics...");
 		sendStatistics();
 		logger.info("Statistics sent, farewell *BOOM*");
@@ -103,11 +101,14 @@ public class Worker {
 			JobResult result = new JobResult(task.imageUrl, task.serialNumber, task.managerUuid, size);
 			logger.info("Created jobResult number " + task.serialNumber + ", with url: " + task.imageUrl + ",sized: "+ size.toString());
 			resultQueues.get(task.managerUuid).enqueueMessage(result);
-			handledURLs.add(task.imageUrl);
-		} catch (IOException e) {
+			urls.get("completed").add(task.imageUrl);
+		} catch (Exception e) {
+			String strErr = e.getClass().toString();
 			JobResult result = new JobResult(task.imageUrl, task.serialNumber, task.managerUuid, ImageSize.DEAD);
 			resultQueues.get(task.managerUuid).enqueueMessage(result);
-			failedURLs.add(task.imageUrl);
+			if (!urls.containsKey(strErr))
+				urls.put(strErr, new ArrayList<String>());
+			urls.get(strErr).add(task.imageUrl);
 		}
     }
     
@@ -125,13 +126,21 @@ public class Worker {
     	statistics += "\tID: " + id + "\n";
     	statistics += "\tStart Time: " + workerStartTime.toString() + "\n";
     	statistics += "\tAverage URL Run-Time (in milliseconds): " + averageRunTime + "\n";
-    	statistics += "\tTotal URLs: " + (handledURLs.size()+failedURLs.size()) + "\n";
-    	statistics += "\tURLs Handled: " + handledURLs.size() + "\n";
-    	for (int i = 0; i < handledURLs.size(); i++)
-    		statistics += "\t\t"+handledURLs.get(i) + "\n";
-    	statistics += "\tURLs Failed (IOException): " + failedURLs.size() + "\n";
-    	for (int i = 0; i < failedURLs.size(); i++)
-    		statistics += "\t\t"+failedURLs.get(i) + "\n";
+    	statistics += "\tTotal URLs: " + urlCounter + "\n";
+    	statistics += "\tURLs Handled: " + urls.get("completed").size() + "\n";
+    	for (int i = 0; i < urls.get("completed").size(); i++)
+    		statistics += "\t\t"+urls.get("completed").get(i) + "\n";
+    	
+		for (HashMap.Entry<String, ArrayList<String> > entry : urls.entrySet()) {
+		    String key = entry.getKey();
+		    ArrayList<String> failedURLs = entry.getValue();
+		    if (!key.equals("completed")) {
+		    	statistics += "\tURLs Failed ("+ key +"): " + failedURLs.size() + "\n";
+		    	for (int i = 0; i < failedURLs.size(); i++)
+		    		statistics += "\t\t"+failedURLs.get(i) + "\n";
+		    }
+		}
+
     	statistics += "\tFinish Time: " + workerFinishTime.toString() + "\n";
     	return statistics;   	
     }
