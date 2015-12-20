@@ -103,7 +103,10 @@ public class JobsManager implements Runnable {
 	        // send conclusion message
 	        sendConclusionMessage(conKey);
 
-			
+			// delete Q
+	        jobsComplete.deleteQueue();
+	        
+	        logger.info("Manager with id: " + _uuid + " is DONE!");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

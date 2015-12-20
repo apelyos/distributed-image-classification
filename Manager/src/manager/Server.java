@@ -10,6 +10,7 @@ import dal.NodesMgmt;
 import dal.Queue;
 import dal.NodesMgmt.NodeType;
 import messages.Command;
+import messages.Job;
 import messages.Command.CommandTypes;
 
 public class Server {
@@ -36,11 +37,24 @@ public class Server {
 				taskExecutor.shutdown();
 				taskExecutor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
 				
+				// terminate all workers
+				terminateAllWorkers();
+				
 				// terminate myself
 				NodesMgmt mgmt = new NodesMgmt(NodeType.MANAGEMENT);
 				mgmt.commitSuicide();
 				break;
 			}
+		}
+	}
+	
+	private void terminateAllWorkers() throws  Exception {
+		NodesMgmt workers = new NodesMgmt(NodeType.WORKER);
+		int num = workers.getNumberOfRunningInstances();
+		Queue<Job> jobsQueue = new Queue<Job>(Configuration.QUEUE_JOBS, Job.class);
+		
+		for (int i = 0; i < num; i++) {
+			jobsQueue.enqueueMessage(Job.createTerminationJob());
 		}
 	}
 
