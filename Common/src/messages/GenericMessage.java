@@ -38,9 +38,19 @@ public class GenericMessage {
     @XmlAnyElement(lax=true)
     public Object body;
     
+    static final JAXBContext jc = initContext();
+
+    private static JAXBContext initContext() {
+        try {
+			return JAXBContext.newInstance(GenericMessage.class, Job.class, Command.class, 
+					Conclusion.class, JobResult.class, Summary.class);
+		} catch (JAXBException e) {
+			e.printStackTrace();
+			return null;
+		}
+    }
+    
     public static GenericMessage fromXML(String xml) throws JAXBException {
-    	JAXBContext jc = JAXBContext.newInstance(GenericMessage.class, Job.class, Command.class, 
-    			Conclusion.class, JobResult.class, Summary.class);
         Unmarshaller unmarshaller = jc.createUnmarshaller();
         StringReader sr = new StringReader(xml);
         GenericMessage obj = (GenericMessage) unmarshaller.unmarshal(sr);
@@ -48,8 +58,6 @@ public class GenericMessage {
     }
     
     public String toXML() throws JAXBException {
-		JAXBContext jc = JAXBContext.newInstance(GenericMessage.class, Job.class, Command.class, 
-				Conclusion.class, JobResult.class, Summary.class);
 		Marshaller marshaller = jc.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true); //for nice indented output
         StringWriter sw = new StringWriter();

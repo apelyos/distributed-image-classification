@@ -23,6 +23,7 @@ import com.amazonaws.services.ec2.model.Tag;
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
 import com.amazonaws.util.EC2MetadataUtils;
 
+
 public class NodesMgmt {
 	private Logger logger = Logger.getLogger(this.getClass().getName());
 	private AmazonEC2 _ec2;
@@ -91,6 +92,12 @@ public class NodesMgmt {
 	public List<String> runInstances(int numberOfInstances) {
 		if (numberOfInstances <= 0)
 			return null;
+		
+		if (numberOfInstances > 20) {
+			numberOfInstances = 20;
+			logger.info("Can't run more than 20 instances.");
+		}
+			
 		
         RunInstancesRequest request = new RunInstancesRequest(Configuration.EC2_IMAGE_ID, numberOfInstances, numberOfInstances);
         request.setInstanceType(Configuration.EC2_INSTANCE_TYPE);

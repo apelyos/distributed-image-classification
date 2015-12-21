@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBException;
@@ -80,6 +82,9 @@ public class Queue<T>{
 	private String createQueue (String queueName) {
 		logger.info("Getting SQS queue called: " + queueName);
         CreateQueueRequest createQueueRequest = new CreateQueueRequest(queueName);
+		Map<String,String> m = new HashMap<String,String>();
+		m.put("VisibilityTimeout", "60");
+        createQueueRequest.setAttributes(m);
         return _sqs.createQueue(createQueueRequest).getQueueUrl();
 	}
 	

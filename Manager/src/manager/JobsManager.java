@@ -38,34 +38,18 @@ public class JobsManager implements Runnable {
 	
 	@Override
 	public void run() {
-	//		If the message is that of a new task it:
-	//		Downloads the input file from S3.
-	//		Distributes the operations to be performed on the images to the workers using SQS queue/s.
-	//		Checks the SQS message count and starts Worker processes (nodes) accordingly.
-	//		The manager should create a worker for every n messages, if there are no running workers.
-	//		If there are k active workers, and the new job requires m workers, then the manager should create m-k new workers, if possible.
-	//		After the manger receives response messages from the workers on all the files on an input file, then it:
-	//		Creates a summary output file accordingly,
-	//		Uploads the output file to S3,
-	//		Sends a message to the application with the location of the file.
-	//
-	//	If the message is a termination message, then the manager:
-	//		Does not accept any more input files from local applications. 
-	//		However, it does serve the local application that sent the termination message.
-	//		Waits for all the workers to finish their job, and then terminates them.
-	//		Creates response messages for the jobs, if needed.
-	//		Terminates.
 		
 		try {
 			logger.info("Got initiate command");
 			String fileKey = _cmd.fileKey;
 			logger.info("Got file Key: " + fileKey);
 			
-			// get file from storage
+			// Downloads the input file from S3.
 			Storage storage = new Storage(Configuration.FILES_BUCKET_NAME);
 			BufferedReader reader = storage.get(fileKey);
 			
 			// read file by line, create jobs & send to queue
+			//Distributes the operations to be performed on the images to the workers using SQS queue/s.
 			Queue<Job> jobsQueue = new Queue<Job>(Configuration.QUEUE_JOBS, Job.class);
 	        while (true) {
 	            String line = reader.readLine();
@@ -91,7 +75,7 @@ public class JobsManager implements Runnable {
 	        
 	        while (_jobCounter > 0) {
 	        	JobResult res = jobsComplete.waitForMessage();
-	        	logger.info("Got job result with id " + res.serialNumber);
+	        	logger.info("Got job result with id " + res.serialNumber + ". adding to summary.");
         		sum.addEntry(res.size, res.imageURL);
 	        	jobsComplete.deleteLastMessage();
 	        	_jobCounter--;
