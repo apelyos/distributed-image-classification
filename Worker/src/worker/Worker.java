@@ -89,8 +89,8 @@ public class Worker {
     }
     
     public void doJob(Job task) throws Exception { 
-		
 		try {
+			logger.info("Handling new job with id: " + task.serialNumber + " from manager: " + task.managerUuid);
 			CloseableHttpClient httpclient = HttpClients.createDefault();  
 			HttpGet httpget = new HttpGet(task.imageUrl);
 			CloseableHttpResponse response = httpclient.execute(httpget);
@@ -98,6 +98,11 @@ public class Worker {
 			BufferedImage image = ImageIO.read(stream);
 			int pixSum = image.getHeight()*image.getWidth();
 			ImageSize size = calculateSize(pixSum);
+			// freeing resources
+			httpclient.close();
+			response.close();
+			stream.close();
+			image.flush();
 			JobResult result = new JobResult(task.imageUrl, task.serialNumber, task.managerUuid, size);
 			logger.info("Created jobResult number " + task.serialNumber + ", with url: " + task.imageUrl + ",sized: "+ size.toString());
 			resultQueues.get(task.managerUuid).enqueueMessage(result);

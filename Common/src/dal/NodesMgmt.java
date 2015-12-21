@@ -126,7 +126,7 @@ public class NodesMgmt {
 		         , "alternatives --set java /usr/lib/jvm/jre-1.8.0-openjdk.x86_64/bin/java"
 		         , "aws s3 cp s3://dsps161-ass1-binaries/{0} /tmp/{0} --region us-west-2"
 		         , "chmod +x /tmp/{0}"
-		         , "java -jar /tmp/{0} {1}"
+		         , "java -Xms128m -Xmx512m -jar /tmp/{0} {1}"
 		         );
 		
 		if (_ofType == NodeType.WORKER) {
