@@ -12,11 +12,12 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 import javax.imageio.ImageIO;
-
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+
+import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 
 import dal.Configuration;
 import dal.NodesMgmt;
@@ -88,32 +89,55 @@ public class Worker {
 		logger.info("Worker is dead.");
     }
     
-    public void doJob(Job task) throws Exception { 
+    public void doJob(Job task) throws Exception  { 
+    	CloseableHttpClient httpclient = null;
+    	HttpGet httpget = null;
+    	CloseableHttpResponse response = null;
+    	InputStream stream = null;
+    	BufferedImage image = null;
+    	int pixSum;
+    	JobResult result;
+    	ImageSize size;
+    	
 		try {
 			logger.info("Handling new job with id: " + task.serialNumber + " from manager: " + task.managerUuid);
-			CloseableHttpClient httpclient = HttpClients.createDefault();  
-			HttpGet httpget = new HttpGet(task.imageUrl);
-			CloseableHttpResponse response = httpclient.execute(httpget);
-			InputStream stream = response.getEntity().getContent(); 
-			BufferedImage image = ImageIO.read(stream);
-			int pixSum = image.getHeight()*image.getWidth();
-			ImageSize size = calculateSize(pixSum);
-			// freeing resources
-			httpclient.close();
-			response.close();
-			stream.close();
-			image.flush();
-			JobResult result = new JobResult(task.imageUrl, task.serialNumber, task.managerUuid, size);
-			logger.info("Created jobResult number " + task.serialNumber + ", with url: " + task.imageUrl + ",sized: "+ size.toString());
-			resultQueues.get(task.managerUuid).enqueueMessage(result);
+			httpclient = HttpClients.createDefault();  
+			httpget = new HttpGet(task.imageUrl);
+			response = httpclient.execute(httpget);
+			stream = response.getEntity().getContent(); 
+			image = ImageIO.read(stream);
+			pixSum = image.getHeight()*image.getWidth();
+			size = calculateSize(pixSum);
+			
+			result = new JobResult(task.imageUrl, task.serialNumber, task.managerUuid, size);
+			logger.info("Created jobResult number " + task.serialNumber + ", with url: " + task.imageUrl + ", sized: "+ size.toString());
 			urls.get("completed").add(task.imageUrl);
 		} catch (Exception e) {
 			String strErr = e.getClass().toString();
-			JobResult result = new JobResult(task.imageUrl, task.serialNumber, task.managerUuid, ImageSize.DEAD);
-			resultQueues.get(task.managerUuid).enqueueMessage(result);
+			result = new JobResult(task.imageUrl, task.serialNumber, task.managerUuid, ImageSize.DEAD);
+			logger.info("Created Failed job number ");
 			if (!urls.containsKey(strErr))
 				urls.put(strErr, new ArrayList<String>());
 			urls.get(strErr).add(task.imageUrl);
+		} finally {
+			// freeing resources
+			if (image != null)
+				image.flush();
+			
+			if (stream != null)
+				stream.close();
+			
+			if (response != null)
+				response.close();
+			
+			if (httpclient != null)
+				httpclient.close();
+		}
+		
+		try {
+			resultQueues.get(task.managerUuid).enqueueMessage(result);
+		} catch (QueueDoesNotExistException e) {
+			e.printStackTrace();
 		}
     }
     

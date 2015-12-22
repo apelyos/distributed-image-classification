@@ -132,6 +132,7 @@ public class Main {
 				File sizeHTML = new File (fileName);
 				String sizedBody = "<h1>"+curSize.toString()+"</h1>\n";
 				mainHTMLBody += "<h1><a href=\" "+ fileName + "\">" + curSize.toString() +" Pictures</a></h1>\n";
+				mainHTMLBody += "<p>Count: " + summary.getListOfSize(curSize).size() + "</p>\n";
 				BufferedWriter sizedBW = new BufferedWriter(new FileWriter(sizeHTML));
 				List<String> urls = summary.getListOfSize(curSize);
 				for (int j = 0; j < urls.size() ; j++)
@@ -140,6 +141,14 @@ public class Main {
 				sizedBW.close();
 			}
 		}
+		
+		//failed urls
+		int failed = 0;
+		if (summary.getListOfSize(ImageSize.DEAD) != null)
+			failed = summary.getListOfSize(ImageSize.DEAD).size();
+		mainHTMLBody += "</br>\n";
+		mainHTMLBody += "<h2>Failed URLs count: " + failed + "</h2>\n";
+		
 		bw.write(htmlHeader+mainHTMLBody+htmlFooter);
 		bw.close();
 	}
