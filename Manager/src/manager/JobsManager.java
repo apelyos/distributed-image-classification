@@ -63,10 +63,10 @@ public class JobsManager implements Runnable {
 	        reader.close();
 	        
 	        int numJobsQueued = jobsQueue.getNumberOfItems();
-	        logger.info("Number of queued items: " + numJobsQueued);
+	        logger.info("Number of queued items: " + numJobsQueued + ", job counter: " + _jobCounter);
 	        
 	        // start required worker nodes
-	        startWorkers(numJobsQueued);
+	        startWorkers(Math.max(numJobsQueued, _jobCounter));
 	        
 	        // wait for all job result messages
 	        logger.info("Wating for jobs completions");
