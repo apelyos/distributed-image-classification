@@ -116,6 +116,12 @@ public class Main {
 	private static void createHTMLs (Summary summary, String outputFile) throws IOException {
 		final String htmlHeader = "<!DOCTYPE html>\n<html>\n<body>\n";
 		final String htmlFooter = "\n</body>\n</html>";
+		int lastBackSlash = outputFile.lastIndexOf('\\');
+		String strippedOutputName;
+		if (lastBackSlash != -1)
+			strippedOutputName = outputFile.substring(lastBackSlash+1);
+		else
+			strippedOutputName = outputFile;
 		String mainHTMLBody = "";
 		if (outputFile.endsWith(".html")) 
 			outputFile = outputFile.substring(0, outputFile.length() - 5);
@@ -129,9 +135,10 @@ public class Main {
 				mainHTMLBody += "<h1>No pictures exists in size " + curSize.toString() + "</h1>\n";
 			} else {
 				String fileName = outputFile + "_" +curSize.toString()+".html";
+				String strippedFileName = strippedOutputName + "_" +curSize.toString()+".html";
 				File sizeHTML = new File (fileName);
 				String sizedBody = "<h1>"+curSize.toString()+"</h1>\n";
-				mainHTMLBody += "<h1><a href=\" "+ fileName + "\">" + curSize.toString() +" Pictures</a></h1>\n";
+				mainHTMLBody += "<h1><a href=\""+ strippedFileName + "\">" + curSize.toString() +" Pictures</a></h1>\n";
 				mainHTMLBody += "<p>Count: " + summary.getListOfSize(curSize).size() + "</p>\n";
 				BufferedWriter sizedBW = new BufferedWriter(new FileWriter(sizeHTML));
 				List<String> urls = summary.getListOfSize(curSize);
