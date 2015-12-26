@@ -5,6 +5,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -116,16 +118,14 @@ public class Main {
 	private static void createHTMLs (Summary summary, String outputFile) throws IOException {
 		final String htmlHeader = "<!DOCTYPE html>\n<html>\n<body>\n";
 		final String htmlFooter = "\n</body>\n</html>";
-		int lastBackSlash = outputFile.lastIndexOf('\\');
-		String strippedOutputName;
-		if (lastBackSlash != -1)
-			strippedOutputName = outputFile.substring(lastBackSlash+1);
-		else
-			strippedOutputName = outputFile;
+		final String EXTENTION = ".html";
 		String mainHTMLBody = "";
-		if (outputFile.endsWith(".html")) 
+		if (outputFile.endsWith(EXTENTION)) 
 			outputFile = outputFile.substring(0, outputFile.length() - 5);
-		File mainHTML = new File (outputFile+".html");
+		Path path = Paths.get(outputFile);
+		path.getFileName();
+		String strippedOutputName = path.getFileName().toString();
+		File mainHTML = new File (outputFile+EXTENTION);
 		BufferedWriter bw = new BufferedWriter(new FileWriter(mainHTML));	
 		
 		for (int i = 0; i < 5; i++) {
@@ -134,8 +134,8 @@ public class Main {
 			if (summary.getListOfSize(curSize) == null) {
 				mainHTMLBody += "<h1>No pictures exists in size " + curSize.toString() + "</h1>\n";
 			} else {
-				String fileName = outputFile + "_" +curSize.toString()+".html";
-				String strippedFileName = strippedOutputName + "_" +curSize.toString()+".html";
+				String fileName = outputFile + "_" +curSize.toString()+EXTENTION;
+				String strippedFileName = strippedOutputName + "_" +curSize.toString()+EXTENTION;
 				File sizeHTML = new File (fileName);
 				String sizedBody = "<h1>"+curSize.toString()+"</h1>\n";
 				mainHTMLBody += "<h1><a href=\""+ strippedFileName + "\">" + curSize.toString() +" Pictures</a></h1>\n";
